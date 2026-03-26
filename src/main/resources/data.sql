@@ -1,0 +1,3 @@
+-- This file is intentionally kept minimal
+-- Tables are auto-created by Hibernate (ddl-auto=update)
+-- Use the API to create users and accounts
