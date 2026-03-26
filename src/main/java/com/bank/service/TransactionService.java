@@ -25,6 +25,9 @@ public class TransactionService {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private AuditService auditService;
+
     @Transactional
     public TransactionDTO transferFunds(TransferRequest request) {
         // Idempotency check
@@ -86,7 +89,9 @@ public class TransactionService {
         transaction.setDescription(request.getDescription());
         transaction.setIdempotencyKey(request.getIdempotencyKey());
 
-        return mapToDTO(transactionRepository.save(transaction));
+        TransactionDTO result = mapToDTO(transactionRepository.save(transaction));
+        auditService.log("TRANSFER", "TRANSACTION", null, fromAccount.getUser().getUsername(), "Transfer of " + request.getAmount() + " from " + request.getFromAccountNumber() + " to " + request.getToAccountNumber());
+        return result;
     }
 
     @Transactional
@@ -110,7 +115,9 @@ public class TransactionService {
         transaction.setStatus(Transaction.TransactionStatus.COMPLETED);
         transaction.setDescription(request.getDescription() != null ? request.getDescription() : "Deposit");
 
-        return mapToDTO(transactionRepository.save(transaction));
+        TransactionDTO depositResult = mapToDTO(transactionRepository.save(transaction));
+        auditService.log("DEPOSIT", "TRANSACTION", null, account.getUser().getUsername(), "Deposit of " + request.getAmount() + " to " + accountNumber);
+        return depositResult;
     }
 
     @Transactional
@@ -139,7 +146,9 @@ public class TransactionService {
         transaction.setStatus(Transaction.TransactionStatus.COMPLETED);
         transaction.setDescription(request.getDescription() != null ? request.getDescription() : "Withdrawal");
 
-        return mapToDTO(transactionRepository.save(transaction));
+        TransactionDTO withdrawResult = mapToDTO(transactionRepository.save(transaction));
+        auditService.log("WITHDRAWAL", "TRANSACTION", null, account.getUser().getUsername(), "Withdrawal of " + request.getAmount() + " from " + accountNumber);
+        return withdrawResult;
     }
 
     @Transactional(readOnly = true)
