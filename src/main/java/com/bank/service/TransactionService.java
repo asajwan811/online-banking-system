@@ -28,6 +28,9 @@ public class TransactionService {
     @Autowired
     private AuditService auditService;
 
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public TransactionDTO transferFunds(TransferRequest request) {
         // Idempotency check
@@ -91,6 +94,10 @@ public class TransactionService {
 
         TransactionDTO result = mapToDTO(transactionRepository.save(transaction));
         auditService.log("TRANSFER", "TRANSACTION", null, fromAccount.getUser().getUsername(), "Transfer of " + request.getAmount() + " from " + request.getFromAccountNumber() + " to " + request.getToAccountNumber());
+        emailService.sendTransactionAlert(
+            fromAccount.getUser().getEmail(), fromAccount.getUser().getFullName(),
+            result.getTransactionRef(), "TRANSFER", request.getAmount(),
+            fromAccount.getBalance(), fromAccount.getCurrency());
         return result;
     }
 
@@ -115,9 +122,13 @@ public class TransactionService {
         transaction.setStatus(Transaction.TransactionStatus.COMPLETED);
         transaction.setDescription(request.getDescription() != null ? request.getDescription() : "Deposit");
 
-        TransactionDTO depositResult = mapToDTO(transactionRepository.save(transaction));
+        TransactionDTO result = mapToDTO(transactionRepository.save(transaction));
         auditService.log("DEPOSIT", "TRANSACTION", null, account.getUser().getUsername(), "Deposit of " + request.getAmount() + " to " + accountNumber);
-        return depositResult;
+        emailService.sendTransactionAlert(
+            account.getUser().getEmail(), account.getUser().getFullName(),
+            result.getTransactionRef(), "DEPOSIT", request.getAmount(),
+            account.getBalance(), account.getCurrency());
+        return result;
     }
 
     @Transactional
@@ -146,9 +157,13 @@ public class TransactionService {
         transaction.setStatus(Transaction.TransactionStatus.COMPLETED);
         transaction.setDescription(request.getDescription() != null ? request.getDescription() : "Withdrawal");
 
-        TransactionDTO withdrawResult = mapToDTO(transactionRepository.save(transaction));
+        TransactionDTO result = mapToDTO(transactionRepository.save(transaction));
         auditService.log("WITHDRAWAL", "TRANSACTION", null, account.getUser().getUsername(), "Withdrawal of " + request.getAmount() + " from " + accountNumber);
-        return withdrawResult;
+        emailService.sendTransactionAlert(
+            account.getUser().getEmail(), account.getUser().getFullName(),
+            result.getTransactionRef(), "WITHDRAWAL", request.getAmount(),
+            account.getBalance(), account.getCurrency());
+        return result;
     }
 
     @Transactional(readOnly = true)

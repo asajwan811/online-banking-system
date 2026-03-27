@@ -6,6 +6,7 @@ import com.bank.dto.RegisterRequest;
 import com.bank.dto.UserDTO;
 import com.bank.domain.User;
 import com.bank.security.JwtUtil;
+import com.bank.service.EmailService;
 import com.bank.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,9 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EmailService emailService;
+
     @PostMapping("/register")
     @Operation(summary = "Register a new user")
     public ResponseEntity<UserDTO> register(@Valid @RequestBody RegisterRequest request) {
@@ -54,6 +58,11 @@ public class AuthController {
                 .findFirst()
                 .map(a -> a.getAuthority().replace("ROLE_", ""))
                 .orElse("USER");
+
+        try {
+            com.bank.dto.UserDTO userDTO = userService.getUserByUsername(userDetails.getUsername());
+            emailService.sendLoginAlert(userDTO.getEmail(), userDTO.getFullName(), "unknown");
+        } catch (Exception ignored) {}
 
         return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), role, jwtUtil.getExpiration()));
     }

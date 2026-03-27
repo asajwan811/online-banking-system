@@ -24,6 +24,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     public User register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username already exists: " + request.getUsername());
@@ -41,7 +44,9 @@ public class UserService {
         user.setRole(Role.USER);
         user.setEnabled(true);
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        emailService.sendWelcomeEmail(saved.getEmail(), saved.getFullName(), saved.getUsername());
+        return saved;
     }
 
     @Transactional(readOnly = true)
