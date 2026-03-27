@@ -48,4 +48,10 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Account> accounts;
+
+    @Column(name = "totp_secret", length = 100)
+    private String totpSecret;
+
+    @Column(name = "two_factor_enabled")
+    private boolean twoFactorEnabled = false;
 }
