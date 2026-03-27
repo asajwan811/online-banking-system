@@ -64,6 +64,13 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- PostgreSQL Driver -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -128,9 +135,9 @@
 
         <!-- Rate Limiting -->
         <dependency>
-            <groupId>com.github.bucket4j</groupId>
+            <groupId>com.github.vladimir-bukhtoyarov</groupId>
             <artifactId>bucket4j-core</artifactId>
-            <version>8.7.0</version>
+            <version>7.6.0</version>
         </dependency>
 
         <!-- PDF Generation -->
